@@ -83,8 +83,10 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       }
     }
 
+    const uniqueId = `doc_${Date.now()}_${Math.random().toString(36).slice(2, 9)}_${Math.random().toString(36).slice(2, 9)}`;
+
     return {
-      id: `${hash}_${file.name}_${file.size}`,
+      id: uniqueId,
       name: file.name,
       size: file.size,
       pageCount,
@@ -130,30 +132,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         processedList.push(processed);
       }
 
-      // Check duplicates against both existing files and incoming files
-      const allNewRecords = [...files, ...processedList];
-      const hashToFileMap = new Map<string, string>(); // hash -> first file name
-
-      const markedRecords = allNewRecords.map(item => {
-        if (hashToFileMap.has(item.hash)) {
-          return {
-            ...item,
-            isDuplicate: true,
-            duplicateOfName: hashToFileMap.get(item.hash)
-          };
-        } else {
-          hashToFileMap.set(item.hash, item.name);
-          return {
-            ...item,
-            isDuplicate: false,
-            duplicateOfName: undefined
-          };
-        }
-      });
-
-      // Split back the new records
-      const updatedIncoming = markedRecords.slice(files.length);
-      onAddFiles(updatedIncoming);
+      // Pass processed files to parent which calculates duplicates reactively across all files
+      onAddFiles(processedList);
     } catch (err: any) {
       setErrorMessage(`Failed to process PDFs: ${err?.message || err}`);
     } finally {

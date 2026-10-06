@@ -49,45 +49,41 @@ export const SealModal: React.FC<SealModalProps> = ({
   };
 
   const handleCreateSampleSeal = () => {
-    // Generate a clean circular SVG/Canvas stamp for testing
+    // Generate an authentic circular official stamp matching the contest document
     const canvas = document.createElement('canvas');
-    canvas.width = 240;
-    canvas.height = 140;
+    canvas.width = 160;
+    canvas.height = 160;
     const ctx = canvas.getContext('2d')!;
 
-    // Outer border
-    ctx.strokeStyle = '#1d4ed8';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(10, 10, 220, 120);
+    // Outer double circles
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(80, 80, 72, 0, Math.PI * 2);
+    ctx.stroke();
 
-    ctx.strokeStyle = '#3b82f6';
     ctx.lineWidth = 1;
-    ctx.strokeRect(15, 15, 210, 110);
+    ctx.beginPath();
+    ctx.arc(80, 80, 66, 0, Math.PI * 2);
+    ctx.stroke();
 
-    // Text
-    ctx.fillStyle = '#1e3a8a';
-    ctx.font = 'bold 12px sans-serif';
+    // Central text
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 13px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('APEX INFRASTRUCTURE LTD.', 120, 42);
-
-    ctx.font = 'bold 10px sans-serif';
-    ctx.fillStyle = '#dc2626';
-    ctx.fillText('OFFICIAL TENDER SEAL', 120, 62);
-
-    ctx.font = '9px sans-serif';
-    ctx.fillStyle = '#1e3a8a';
-    ctx.fillText('Md. Rafiqul Islam (MD)', 120, 85);
-
-    ctx.font = '8px monospace';
-    ctx.fillStyle = '#475569';
-    ctx.fillText('Date: 2026-10-06 · Dhaka', 120, 105);
+    ctx.textBaseline = 'middle';
+    ctx.fillText('MEGHNA TECH', 80, 72);
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillText('SEAL', 80, 90);
 
     const dataUrl = canvas.toDataURL('image/png');
     setCurrentConfig(prev => ({
       ...prev,
       enabled: true,
       imageDataUrl: dataUrl,
-      fileName: 'Generated_Demo_Seal.png'
+      fileName: 'Meghna_Tech_Seal.png',
+      width: 90,
+      height: 90
     }));
   };
 

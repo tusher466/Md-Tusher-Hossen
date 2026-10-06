@@ -1,7 +1,7 @@
 import React from 'react';
 import { RequirementItem, UploadedFileRecord, RequirementStatusType, TenderInfo } from '../types/tender';
 import { Language, translations } from '../locales/translations';
-import { calculateBestMatches } from '../utils/similarity';
+import { calculateBestMatches, extractDateFromText } from '../utils/similarity';
 import {
   AlertCircle,
   CheckCircle2,
@@ -232,7 +232,19 @@ export const RequirementList: React.FC<RequirementListProps> = ({
                         <div className="relative flex-1">
                           <select
                             value={matchedFileId || ''}
-                            onChange={e => onMatch(req.id, e.target.value || undefined)}
+                            onChange={e => {
+                              const selectedId = e.target.value || undefined;
+                              onMatch(req.id, selectedId);
+                              if (req.has_expiry && selectedId && !expiryVal) {
+                                const selectedFile = filesMap.get(selectedId);
+                                if (selectedFile) {
+                                  const detectedDate = extractDateFromText(selectedFile.name);
+                                  if (detectedDate) {
+                                    onSetExpiryDate(req.id, detectedDate);
+                                  }
+                                }
+                              }
+                            }}
                             className={`w-full text-xs py-2 px-3 pr-8 rounded-lg border transition-colors bg-white appearance-none cursor-pointer ${
                               matchedFile
                                 ? 'border-slate-300 text-slate-900 font-medium'
@@ -281,21 +293,58 @@ export const RequirementList: React.FC<RequirementListProps> = ({
 
                       {/* Expiry Date Input (if has_expiry: true and file is matched) */}
                       {req.has_expiry && matchedFile && (
-                        <div className="p-2.5 rounded-lg bg-amber-50/50 border border-amber-200/80">
-                          <label className="block text-[11px] font-semibold text-amber-900 mb-1 flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5 text-amber-700" />
-                            <span>{t.expiryDateLabel} *</span>
+                        <div className="p-2.5 rounded-lg bg-amber-50/50 border border-amber-200/80 space-y-2">
+                          <label className="block text-[11px] font-semibold text-amber-900 flex items-center justify-between">
+                            <span className="flex items-center gap-1.5">
+                              <Calendar className="w-3.5 h-3.5 text-amber-700" />
+                              <span>{t.expiryDateLabel} *</span>
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-normal">
+                              Tender deadline: {tender.submission_deadline}
+                            </span>
                           </label>
-                          <div className="flex items-center gap-2">
+
+                          <div className="flex flex-wrap items-center gap-2">
                             <input
                               type="date"
                               value={expiryVal}
                               onChange={e => onSetExpiryDate(req.id, e.target.value)}
                               className="text-xs font-mono py-1.5 px-2.5 rounded-md border border-amber-300 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                             />
-                            <span className="text-[10px] text-amber-700">
-                              (Submission deadline: {tender.submission_deadline})
-                            </span>
+
+                            {/* Quick suggested chips based on requirement */}
+                            <div className="flex items-center gap-1 text-[10px]">
+                              {req.id === 'R01' && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => onSetExpiryDate(req.id, '2027-06-30')}
+                                    className="px-2 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded font-medium"
+                                    title="Set valid Trade License date"
+                                  >
+                                    2027-06-30 (Valid)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => onSetExpiryDate(req.id, '2025-06-30')}
+                                    className="px-2 py-1 bg-white hover:bg-rose-50 text-rose-800 border border-rose-300 rounded font-medium"
+                                    title="Set expired date to test blocking validation"
+                                  >
+                                    2025-06-30 (Test Expired)
+                                  </button>
+                                </>
+                              )}
+                              {req.id === 'R04' && (
+                                <button
+                                  type="button"
+                                  onClick={() => onSetExpiryDate(req.id, '2026-12-31')}
+                                  className="px-2 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded font-medium"
+                                  title="Set valid Bank Solvency date"
+                                >
+                                  2026-12-31 (Valid Solvency)
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )}

@@ -28,15 +28,36 @@ function jaccardSimilarity(setA: Set<string>, setB: Set<string>): number {
 const synonymGroups: string[][] = [
   ['trade', 'license', 'ট্রেড', 'লাইসেন্স', 'tl'],
   ['tin', 'tax', 'ট্যাক্স', 'আয়কর', 'returntin', 'income'],
-  ['vat', 'bin', 'ভ্যাট', 'বিআইএন', 'vatbin'],
+  ['vat', 'bin', 'ভ্যাট', 'বিআইএন', 'vatbin', 'registration'],
   ['solvency', 'bank', 'ব্যাংক', 'সচ্ছলতা', 'credit', 'liquid'],
   ['experience', 'completion', 'অভিজ্ঞতা', 'work', 'similar', 'track'],
+  ['technical', 'proposal', 'কারিগরি', 'tech'],
+  ['financial', 'proposal', 'commercial', 'price', 'আর্থিক'],
+  ['declaration', 'signed', 'undertaking', 'ঘোষণাপত্র', 'statement'],
+  ['audited', 'financial', 'statement', 'নিরীক্ষিত', 'audit', 'ca'],
+  ['manufacturer', 'authorization', 'maf', 'প্রস্তুতকারক', 'অনুমোদনপত্র', 'oem'],
   ['cv', 'personnel', 'key', 'manpower', 'জীবনবৃত্তান্ত', 'staff', 'engineer'],
   ['equipment', 'machinery', 'যন্ত্রপাতি', 'সরঞ্জাম', 'plant', 'tools'],
-  ['maf', 'authorization', 'manufacturer', 'প্রস্তুতকারক', 'অনুমোদন', 'oem'],
   ['affidavit', 'litigation', 'debarment', 'হলফনামা', 'এফিডেভিট', 'court', 'case'],
   ['submission', 'letter', 'form', 'pw3', 'দরপত্র', 'দাখিল', 'tenderform', 'tenderletter']
 ];
+
+/**
+ * Extract ISO date string (YYYY-MM-DD) from a filename if present.
+ */
+export function extractDateFromText(text: string): string | null {
+  // Matches e.g. 2026-12-31, 2027-06-30, 2025_06_30
+  const match = text.match(/\b(20\d\d)[-_/](0[1-9]|1[0-2])[-_/](0[1-9]|[12]\d|3[01])\b/);
+  if (match) {
+    return `${match[1]}-${match[2]}-${match[3]}`;
+  }
+  // Matches year range like 2026_2027 -> standard fiscal year end is 2027-06-30
+  const fiscalMatch = text.match(/202[0-9][-_](202[0-9])/);
+  if (fiscalMatch) {
+    return `${fiscalMatch[1]}-06-30`;
+  }
+  return null;
+}
 
 function synonymBoost(nameTokens: Set<string>, reqTokens: Set<string>): number {
   let matchedGroupCount = 0;

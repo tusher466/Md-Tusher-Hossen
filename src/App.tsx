@@ -18,7 +18,7 @@ import { SealModal } from './components/SealModal';
 import { RequirementsJsonModal } from './components/RequirementsJsonModal';
 import { TenderEditModal } from './components/TenderEditModal';
 import { generateTenderPackage } from './utils/PdfGenerator';
-import { calculateBestMatches } from './utils/similarity';
+import { calculateBestMatches, extractDateFromText } from './utils/similarity';
 import { exportChecklistToCSV, exportProjectToFile } from './utils/exportChecklist';
 import {
   FileCheck2,
@@ -34,7 +34,7 @@ import {
   Info
 } from 'lucide-react';
 
-const LOCAL_STORAGE_KEY = 'tender_builder_progress_v1';
+const LOCAL_STORAGE_KEY = 'tender_builder_progress_v2';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('en');
@@ -177,13 +177,35 @@ export default function App() {
 
   const isPackageGenerationAllowed = blockingItems.length === 0;
 
+  // Helper to recalculate duplicate flags reactively
+  const recalculateDuplicates = (allFiles: UploadedFileRecord[]): UploadedFileRecord[] => {
+    const hashToFirstName = new Map<string, string>();
+    return allFiles.map(file => {
+      if (file.isCorrupt) return file;
+      if (hashToFirstName.has(file.hash)) {
+        return {
+          ...file,
+          isDuplicate: true,
+          duplicateOfName: hashToFirstName.get(file.hash)
+        };
+      } else {
+        hashToFirstName.set(file.hash, file.name);
+        return {
+          ...file,
+          isDuplicate: false,
+          duplicateOfName: undefined
+        };
+      }
+    });
+  };
+
   // File Handlers
   const handleAddFiles = (newFiles: UploadedFileRecord[]) => {
-    setFiles(prev => [...prev, ...newFiles]);
+    setFiles(prev => recalculateDuplicates([...prev, ...newFiles]));
   };
 
   const handleRemoveFile = (fileId: string) => {
-    setFiles(prev => prev.filter(f => f.id !== fileId));
+    setFiles(prev => recalculateDuplicates(prev.filter(f => f.id !== fileId)));
     // Clear matches referencing this file
     setMatches(prev => {
       const next = { ...prev };
@@ -232,13 +254,25 @@ export default function App() {
     const suggestions = calculateBestMatches(requirements, files, matches);
     if (suggestions.length === 0) return;
 
-    setMatches(prev => {
-      const next = { ...prev };
-      for (const item of suggestions) {
-        next[item.requirementId] = item.fileId;
+    const newMatches: Record<string, string | undefined> = { ...matches };
+    const newExpiries: Record<string, string | undefined> = { ...expiryDates };
+
+    for (const item of suggestions) {
+      newMatches[item.requirementId] = item.fileId;
+      const req = requirements.find(r => r.id === item.requirementId);
+      if (req && req.has_expiry && !newExpiries[req.id]) {
+        const file = filesMap.get(item.fileId);
+        if (file) {
+          const detectedDate = extractDateFromText(file.name);
+          if (detectedDate) {
+            newExpiries[req.id] = detectedDate;
+          }
+        }
       }
-      return next;
-    });
+    }
+
+    setMatches(newMatches);
+    setExpiryDates(newExpiries);
   };
 
   // Generate Final PDF Package

@@ -2,112 +2,113 @@ import { RequirementsData } from '../types/tender';
 
 export const defaultRequirementsData: RequirementsData = {
   tender: {
-    tender_id: "WD-04/RHD/2026",
-    title: "Procurement of Civil Works & Intelligent Weighbridge Inspection Facilities at Meghna Bridge Approach",
-    procuring_entity: "Roads and Highways Department (RHD), Ministry of Road Transport and Bridges",
-    bidder: "Apex Infrastructure & Engineering Consortium Ltd.",
-    submission_deadline: "2026-11-15"
+    tender_id: "T-2026-0417",
+    title: "Supply of IT Equipment",
+    procuring_entity: "Directorate of Sample Services",
+    bidder: "Meghna Tech Solutions Ltd.",
+    submission_deadline: "2026-10-20"
   },
   requirements: [
     {
-      id: "req-1",
+      id: "R01",
       order: 1,
-      title_en: "Tender Submission Letter & Form PW3-1",
-      title_bn: "দরপত্র দাখিল পত্র ও নির্ধারিত ফরম (PW3-1)",
+      title_en: "Trade License",
+      title_bn: "ট্রেড লাইসেন্স",
       mandatory: true,
-      has_expiry: false,
-      description_en: "Duly signed and stamped Tender Submission Letter by the authorized representative",
-      description_bn: "ক্ষমতাপ্রাপ্ত প্রতিনিধি কর্তৃক যথাযথ স্বাক্ষরিত ও সিলযুক্ত দরপত্র দাখিল পত্র"
+      has_expiry: true,
+      description_en: "Valid trade license renewed from City Corporation or Municipality",
+      description_bn: "সিটি কর্পোরেশন বা পৌরসভা থেকে নবায়নকৃত ট্রেড লাইসেন্স"
     },
     {
-      id: "req-2",
+      id: "R02",
       order: 2,
-      title_en: "Valid Trade License (Current Fiscal Year)",
-      title_bn: "হালনাগাদ ট্রেড লাইসেন্স (চলতি অর্থবছর)",
+      title_en: "TIN Certificate",
+      title_bn: "টিআইএন সনদ",
       mandatory: true,
-      has_expiry: true,
-      description_en: "Trade License renewed for current fiscal year from City Corporation or Municipality",
-      description_bn: "সংশ্লিষ্ট সিটি কর্পোরেশন বা পৌরসভা থেকে চলতি অর্থবছরের হালনাগাদ লাইসেন্স"
+      has_expiry: false,
+      description_en: "Taxpayer Identification Number Certificate issued by Revenue Board",
+      description_bn: "জাতীয় রাজস্ব বোর্ড কর্তৃক প্রদত্ত করদাতা সনাক্তকরণ নম্বর (টিআইএন)"
     },
     {
-      id: "req-3",
+      id: "R03",
       order: 3,
-      title_en: "Tax Identification Number (TIN) & Income Tax Certificate",
-      title_bn: "ট্যাক্স আইডেন্টিফিকেশন নম্বর (TIN) ও আয়কর রিটার্ন প্রাপ্তি স্বীকার",
+      title_en: "VAT Registration Certificate",
+      title_bn: "ভ্যাট নিবন্ধন সনদ",
       mandatory: true,
       has_expiry: false,
-      description_en: "TIN Certificate along with acknowledgment receipt of the latest assessment year",
-      description_bn: "টিআইএন সনদ এবং সর্বশেষ কর বর্ষের আয়কর দাখিলের স্বীকৃতি স্লিপ"
+      description_en: "Value Added Tax (VAT) / Business ID (BIN) registration certificate",
+      description_bn: "মূল্য সংযোজন কর (ভ্যাট) / বিজনেস আইডেন্টিফিকেশন নম্বর (বিআইএন) সনদ"
     },
     {
-      id: "req-4",
+      id: "R04",
       order: 4,
-      title_en: "VAT / Business Identification Number (BIN) Certificate",
-      title_bn: "ভ্যাট / বিআইএন নিবন্ধন সনদপত্র (১৩ ডিজিট)",
+      title_en: "Bank Solvency Certificate",
+      title_bn: "ব্যাংক সচ্ছলতা সনদ",
       mandatory: true,
-      has_expiry: false,
-      description_en: "13-digit Central Value Added Tax registration certificate from NBR",
-      description_bn: "জাতীয় রাজস্ব বোর্ড (এনবিআর) কর্তৃক প্রদত্ত ১৩ ডিজিটের কেন্দ্রীয় ভ্যাট নিবন্ধন সনদ"
+      has_expiry: true,
+      description_en: "Solvency certificate issued by a scheduled commercial bank confirming creditworthiness",
+      description_bn: "তফসিলি ব্যাংক কর্তৃক প্রদত্ত আর্থিক সচ্ছলতা ও ক্রেডিট প্রত্যয়ন সনদ"
     },
     {
-      id: "req-5",
+      id: "R05",
       order: 5,
-      title_en: "Bank Solvency Certificate & Liquid Assets Credit Line",
-      title_bn: "ব্যাংক সচ্ছলতা সনদপত্র ও লিকুইড এসেট ক্রেডিট লাইন",
+      title_en: "Experience Certificate",
+      title_bn: "অভিজ্ঞতার সনদ",
       mandatory: true,
-      has_expiry: true,
-      description_en: "Certificate from a scheduled commercial bank confirming liquid assets or line of credit",
-      description_bn: "তফসিলি ব্যাংক কর্তৃক প্রদত্ত তারল্য সম্পদ বা ক্রেডিট সুবিধার প্রত্যয়ন সনদ"
+      has_expiry: false,
+      description_en: "Satisfactory completion certificate for similar IT equipment supply contracts",
+      description_bn: "অনুরূপ আইটি যন্ত্রপাতি সরবরাহ ও বাস্তবায়নের সন্তোষজনক সমাপ্তি সনদ"
     },
     {
-      id: "req-6",
+      id: "R06",
       order: 6,
-      title_en: "Specific Civil Infrastructure Construction Experience",
-      title_bn: "অনুরূপ প্রকৃতির সিভিল কাজের সন্তোষজনক সমাপ্তি সনদপত্র",
-      mandatory: true,
-      has_expiry: false,
-      description_en: "Completion certificate confirming similar highway/bridge works within the last 5 years",
-      description_bn: "বিগত ৫ বছরে সরকারি বা স্বায়ত্তশাসিত প্রতিষ্ঠানে অনুরূপ কাজ সম্পন্ন করার সনদ"
-    },
-    {
-      id: "req-7",
-      order: 7,
-      title_en: "Key Personnel Qualifications & Curriculum Vitae (CV)",
-      title_bn: "মূল কারিগরি জনবলের জীবনবৃত্তান্ত ও পেশাগত সনদ",
-      mandatory: true,
-      has_expiry: false,
-      description_en: "Signed CVs of Project Manager, Lead Structural Engineer, and Materials Inspector",
-      description_bn: "প্রকল্প ব্যবস্থাপক, প্রধান স্ট্রাকচারাল ইঞ্জিনিয়ার ও গুণমান প্রকৌশলীর স্বাক্ষরিত জীবনবৃত্তান্ত"
-    },
-    {
-      id: "req-8",
-      order: 8,
-      title_en: "Major Equipment & Heavy Machinery Capability Schedule",
-      title_bn: "প্রয়োজনীয় ভারী যন্ত্রপাতি ও সরঞ্জামের বিবরণী",
+      title_en: "Audited Financial Statement",
+      title_bn: "নিরীক্ষিত আর্থিক বিবরণী",
       mandatory: false,
       has_expiry: false,
-      description_en: "List of owned or leased heavy rollers, asphalt pavers, and batching plant",
-      description_bn: "চুক্তির জন্য বরাদ্দকৃত নিজস্ব বা লিজকৃত ভারী রোলার ও মেশিনারিজের তালিকা"
+      description_en: "Audited financial report prepared by a registered chartered accountant (Optional)",
+      description_bn: "সনদপ্রাপ্ত চার্টার্ড অ্যাকাউন্ট্যান্ট কর্তৃক নিরীক্ষিত আর্থিক বিবরণী (ঐচ্ছিক)"
     },
     {
-      id: "req-9",
-      order: 9,
-      title_en: "Manufacturer's Authorization Certificate (MAF)",
-      title_bn: "মূল প্রস্তুতকারকের অনুমোদন পত্র (MAF)",
+      id: "R07",
+      order: 7,
+      title_en: "Manufacturer's Authorization",
+      title_bn: "প্রস্তুতকারকের অনুমোদনপত্র",
       mandatory: false,
       has_expiry: true,
-      description_en: "Authorized distributor/manufacturer certificate for load cell sensor instruments",
-      description_bn: "বিশেষায়িত পরিদর্শন সেন্সর ও ওজন স্কেলের প্রস্তুতকারক কর্তৃক প্রদত্ত প্রত্যয়ন"
+      description_en: "Manufacturer's Authorization Form (MAF) from OEM hardware manufacturers (Optional)",
+      description_bn: "মূল হার্ডওয়্যার প্রস্তুতকারক কর্তৃক প্রদত্ত অনুমোদনপত্র (ঐচ্ছিক)"
     },
     {
-      id: "req-10",
-      order: 10,
-      title_en: "Litigation History & Non-Debarment Affidavit",
-      title_bn: "আইনগত মামলা ও কালোতালিকাভুক্ত না হওয়ার এফিডেভিট",
-      mandatory: false,
+      id: "R08",
+      order: 8,
+      title_en: "Technical Proposal",
+      title_bn: "কারিগরি প্রস্তাব",
+      mandatory: true,
       has_expiry: false,
-      description_en: "Non-judicial stamp notarized affidavit confirming non-debarment and clean track record",
-      description_bn: "কোম্পানি দেউলিয়া বা কালোতালিকাভুক্ত নয় মর্মে ৩০০ টাকার নন-জুডিশিয়াল স্ট্যাম্পে হলফনামা"
+      description_en: "Comprehensive technical compliance, equipment datasheets, delivery and team schedule",
+      description_bn: "কারিগরি বিবরণী, পণ্যের স্পেসিফিকেশন ও বাস্তবায়ন দলের তালিকা"
+    },
+    {
+      id: "R09",
+      order: 9,
+      title_en: "Financial Proposal",
+      title_bn: "আর্থিক প্রস্তাব",
+      mandatory: true,
+      has_expiry: false,
+      description_en: "Priced bill of quantities, payment terms, and validity declaration",
+      description_bn: "দরপত্র মূল্য তালিকা, মূল্য তফসিল ও আর্থিক শর্তাবলী"
+    },
+    {
+      id: "R10",
+      order: 10,
+      title_en: "Signed Declaration",
+      title_bn: "স্বাক্ষরিত ঘোষণাপত্র",
+      mandatory: true,
+      has_expiry: false,
+      description_en: "Official signed declaration and anti-corruption commitment on letterhead",
+      description_bn: "ক্ষমতাপ্রাপ্ত ব্যবস্থাপনা পরিচালক কর্তৃক যথাযথ স্বাক্ষরিত ও সিলযুক্ত ঘোষণাপত্র"
     }
   ]
 };
+
