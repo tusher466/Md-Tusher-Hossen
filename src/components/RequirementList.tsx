@@ -40,6 +40,7 @@ export const RequirementList: React.FC<RequirementListProps> = ({
   onAutoMatchAll
 }) => {
   const t = translations[currentLang];
+  const [dragOverReqId, setDragOverReqId] = React.useState<string | null>(null);
 
   // Map fileId -> file object
   const filesMap = new Map<string, UploadedFileRecord>();
@@ -176,15 +177,51 @@ export const RequirementList: React.FC<RequirementListProps> = ({
               const description = currentLang === 'bn' ? req.description_bn : req.description_en;
               const expiryVal = expiryDates[req.id] || '';
 
+              const isDragOverThis = dragOverReqId === req.id;
+
               return (
                 <tr
                   key={req.id}
-                  className={`hover:bg-emerald-50/20 transition-colors ${
-                    statusInfo.status === 'MISSING'
-                      ? 'bg-rose-50/20'
+                  onDragOver={e => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'copy';
+                    if (dragOverReqId !== req.id) setDragOverReqId(req.id);
+                  }}
+                  onDragLeave={e => {
+                    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                    setDragOverReqId(null);
+                  }}
+                  onDrop={e => {
+                    e.preventDefault();
+                    setDragOverReqId(null);
+                    const droppedFileId = e.dataTransfer.getData('text/plain');
+                    if (!droppedFileId) return;
+                    const file = filesMap.get(droppedFileId);
+                    if (!file) return;
+                    if (file.isCorrupt) {
+                      alert(t.corruptFile);
+                      return;
+                    }
+                    if (file.isDuplicate) {
+                      alert(t.duplicateDetected);
+                      return;
+                    }
+                    onMatch(req.id, droppedFileId);
+                    if (req.has_expiry && !expiryVal) {
+                      const detectedDate = extractDateFromText(file.name);
+                      if (detectedDate) {
+                        onSetExpiryDate(req.id, detectedDate);
+                      }
+                    }
+                  }}
+                  className={`transition-all duration-150 ${
+                    isDragOverThis
+                      ? 'bg-emerald-100/70 ring-2 ring-emerald-500 shadow-sm'
+                      : statusInfo.status === 'MISSING'
+                      ? 'bg-rose-50/20 hover:bg-rose-50/40'
                       : statusInfo.status === 'EXPIRED' || statusInfo.status === 'EXPIRY_NEEDED'
-                      ? 'bg-amber-50/20'
-                      : ''
+                      ? 'bg-amber-50/20 hover:bg-amber-50/40'
+                      : 'hover:bg-emerald-50/30'
                   }`}
                 >
                   {/* Order Number */}
@@ -227,6 +264,12 @@ export const RequirementList: React.FC<RequirementListProps> = ({
                   {/* File Matching & Expiry Picker */}
                   <td className="py-4 px-4 align-top">
                     <div className="space-y-2">
+                      {isDragOverThis && (
+                        <div className="p-2 border-2 border-dashed border-emerald-500 bg-emerald-50 text-emerald-900 text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-1.5 animate-pulse">
+                          <span>Drop PDF here to match with &quot;{title}&quot;</span>
+                        </div>
+                      )}
+
                       {/* Dropdown File Selector */}
                       <div className="flex items-center gap-2">
                         <div className="relative flex-1">

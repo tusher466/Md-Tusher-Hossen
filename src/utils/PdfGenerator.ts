@@ -640,7 +640,8 @@ export async function generateTenderPackage(
 
     // -- Footer Pagination --
     // Format strictly as required: <tender_id> | Page X of Y
-    const footerText = `${tender.tender_id} | Page ${pageNum} of ${totalPagesCount}`;
+    const asciiTenderId = tender.tender_id.replace(/[^\x20-\x7E]/g, '') || 'Tender';
+    const footerText = `${asciiTenderId} | Page ${pageNum} of ${totalPagesCount}`;
 
     // Draw protective footer strip at bottom (height: 24pt)
     // Semi-opaque white background to prevent obscuring or colliding with original text

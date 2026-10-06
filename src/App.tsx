@@ -149,6 +149,18 @@ export default function App() {
       } else {
         currentStatus = 'NOT_PROVIDED';
       }
+    } else if (matchedFile.isDuplicate) {
+      currentStatus = 'MISSING';
+      blockingItems.push({
+        req,
+        reason: lang === 'bn' ? 'সংযুক্ত ফাইলটি অপর একটি ফাইলের হুবহু ডুপ্লিকেট।' : 'Attached file is an exact duplicate of another uploaded file.'
+      });
+    } else if (matchedFile.isCorrupt) {
+      currentStatus = 'MISSING';
+      blockingItems.push({
+        req,
+        reason: lang === 'bn' ? 'সংযুক্ত ফাইলটি নষ্ট বা পাসওয়ার্ডযুক্ত।' : 'Attached file is corrupt or password-protected.'
+      });
     } else if (req.has_expiry) {
       if (!expiryDate) {
         currentStatus = 'EXPIRY_NEEDED';
@@ -226,6 +238,17 @@ export default function App() {
   };
 
   const handleMatch = (requirementId: string, fileId: string | undefined) => {
+    if (fileId) {
+      const targetFile = files.find(f => f.id === fileId);
+      if (targetFile?.isCorrupt) {
+        alert(t.corruptFile);
+        return;
+      }
+      if (targetFile?.isDuplicate) {
+        alert(t.duplicateDetected);
+        return;
+      }
+    }
     setMatches(prev => {
       const next = { ...prev };
       if (!fileId) {
@@ -381,6 +404,15 @@ export default function App() {
     }
   };
 
+  const handleSelectTab = (tab: 'overview' | 'files' | 'matching' | 'generate') => {
+    setActiveTab(tab);
+    const targetId = `section-${tab}`;
+    const el = document.getElementById(targetId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const matchedDocsCount = Object.values(matches).filter(Boolean).length;
   const totalMandatoryCount = requirements.filter(r => r.mandatory).length;
 
@@ -391,7 +423,7 @@ export default function App() {
         currentLang={lang}
         onToggleLang={() => setLang(l => (l === 'en' ? 'bn' : 'en'))}
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={handleSelectTab}
         onOpenCustomJson={() => setShowCustomJsonModal(true)}
         onExportProject={handleExportProject}
         onImportProject={handleImportProject}
@@ -399,22 +431,129 @@ export default function App() {
 
       {/* Main Body Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-        {/* Tender Overview Card */}
-        <TenderOverview
-          tender={tender}
-          currentLang={lang}
-          onEditTender={() => setShowTenderEditModal(true)}
-          onLoadCustomJson={() => setShowCustomJsonModal(true)}
-          onDirectJsonUpload={newData => {
-            setRequirementsData(newData);
-            setMatches({});
-            setExpiryDates({});
-          }}
-          onResetToDefault={handleResetToDefault}
-        />
+        {/* Interactive Workflow Progress Stepper */}
+        <div className="mb-6 bg-white border border-emerald-100 rounded-2xl p-4 shadow-2xs">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            {/* Step 1: Tender Specification */}
+            <button
+              onClick={() => handleSelectTab('overview')}
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                activeTab === 'overview'
+                  ? 'border-emerald-500 bg-emerald-50/70 shadow-2xs'
+                  : 'border-emerald-100/70 bg-emerald-50/20 hover:bg-emerald-50/50'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                  {lang === 'bn' ? 'ধাপ ১ · বিবরণ' : 'Step 1 · Details'}
+                </span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              </div>
+              <div className="font-semibold text-slate-900 truncate">
+                {tender.tender_id}
+              </div>
+              <div className="text-[11px] text-slate-500 truncate mt-0.5">
+                {lang === 'bn' ? 'দরপত্র স্পেসিফিকেশন প্রস্তুত' : 'Tender parameters loaded'}
+              </div>
+            </button>
 
-        {/* Section 1: Upload Files Dashboard */}
-        <div className="mb-8">
+            {/* Step 2: Upload Files */}
+            <button
+              onClick={() => handleSelectTab('files')}
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                activeTab === 'files'
+                  ? 'border-emerald-500 bg-emerald-50/70 shadow-2xs'
+                  : 'border-emerald-100/70 bg-emerald-50/20 hover:bg-emerald-50/50'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                  {lang === 'bn' ? 'ধাপ ২ · ফাইল আপলোড' : 'Step 2 · Uploads'}
+                </span>
+                <span className={`w-2 h-2 rounded-full ${files.length > 0 ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+              </div>
+              <div className="font-semibold text-slate-900 font-mono tabular-nums">
+                {files.length} / 30 {lang === 'bn' ? 'ফাইল' : 'PDFs'}
+              </div>
+              <div className="text-[11px] text-slate-500 truncate mt-0.5">
+                {files.length > 0 ? `${files.reduce((a, b) => a + b.pageCount, 0)} pages verified` : (lang === 'bn' ? 'ফাইল আপলোড করুন' : 'PDF files required')}
+              </div>
+            </button>
+
+            {/* Step 3: Match & Validation */}
+            <button
+              onClick={() => handleSelectTab('matching')}
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                activeTab === 'matching'
+                  ? 'border-emerald-500 bg-emerald-50/70 shadow-2xs'
+                  : 'border-emerald-100/70 bg-emerald-50/20 hover:bg-emerald-50/50'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                  {lang === 'bn' ? 'ধাপ ৩ · ম্যাপিং' : 'Step 3 · Matching'}
+                </span>
+                <span className={`w-2 h-2 rounded-full ${blockingItems.length === 0 && matchedDocsCount > 0 ? 'bg-emerald-500' : blockingItems.length > 0 ? 'bg-amber-500' : 'bg-slate-300'}`} />
+              </div>
+              <div className="font-semibold text-slate-900 font-mono tabular-nums">
+                {matchedDocsCount} / {requirements.length} {lang === 'bn' ? 'ম্যাচড' : 'matched'}
+              </div>
+              <div className="text-[11px] text-slate-500 truncate mt-0.5">
+                {blockingItems.length > 0 ? (
+                  <span className="text-amber-700 font-semibold">{blockingItems.length} {lang === 'bn' ? 'টি সমস্যা রয়েছে' : 'issues to resolve'}</span>
+                ) : (
+                  <span className="text-emerald-700 font-semibold">{lang === 'bn' ? 'সব আবশ্যক ঠিক আছে' : 'All mandatory OK'}</span>
+                )}
+              </div>
+            </button>
+
+            {/* Step 4: Final Package Generation */}
+            <button
+              onClick={() => handleSelectTab('generate')}
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                activeTab === 'generate'
+                  ? 'border-emerald-500 bg-emerald-50/70 shadow-2xs'
+                  : 'border-emerald-100/70 bg-emerald-50/20 hover:bg-emerald-50/50'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                  {lang === 'bn' ? 'ধাপ ৪ · প্যাকেজ' : 'Step 4 · Compiler'}
+                </span>
+                <span className={`w-2 h-2 rounded-full ${isPackageGenerationAllowed ? 'bg-emerald-500' : 'bg-rose-400'}`} />
+              </div>
+              <div className="font-semibold text-slate-900 truncate">
+                {isPackageGenerationAllowed ? (
+                  <span className="text-emerald-700 font-bold">{lang === 'bn' ? 'দাখিলের জন্য প্রস্তুত' : 'Ready to Compile'}</span>
+                ) : (
+                  <span className="text-rose-700 font-bold">{lang === 'bn' ? 'ব্লক করা আছে' : 'Blocked'}</span>
+                )}
+              </div>
+              <div className="text-[11px] text-slate-500 truncate mt-0.5">
+                {isPackageGenerationAllowed ? `${tender.tender_id}_Package.pdf` : `${blockingItems.length} issues blocking`}
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Section 1: Tender Overview Card */}
+        <section id="section-overview" className="scroll-mt-20">
+          <TenderOverview
+            tender={tender}
+            currentLang={lang}
+            onEditTender={() => setShowTenderEditModal(true)}
+            onLoadCustomJson={() => setShowCustomJsonModal(true)}
+            onDirectJsonUpload={newData => {
+              setRequirementsData(newData);
+              setMatches({});
+              setExpiryDates({});
+            }}
+            onResetToDefault={handleResetToDefault}
+          />
+        </section>
+
+        {/* Section 2: Upload Files Dashboard */}
+        <section id="section-files" className="mb-8 scroll-mt-20">
           <FileUploader
             files={files}
             onAddFiles={handleAddFiles}
@@ -427,23 +566,26 @@ export default function App() {
             }}
             currentLang={lang}
           />
-        </div>
+        </section>
 
-        {/* Section 2: Requirements & Document Matching */}
-        <RequirementList
-          requirements={requirements}
-          files={files}
-          matches={matches}
-          expiryDates={expiryDates}
-          tender={tender}
-          currentLang={lang}
-          onMatch={handleMatch}
-          onSetExpiryDate={handleSetExpiryDate}
-          onAutoMatchAll={handleAutoMatchAll}
-        />
+        {/* Section 3: Requirements & Document Matching */}
+        <section id="section-matching" className="scroll-mt-20">
+          <RequirementList
+            requirements={requirements}
+            files={files}
+            matches={matches}
+            expiryDates={expiryDates}
+            tender={tender}
+            currentLang={lang}
+            onMatch={handleMatch}
+            onSetExpiryDate={handleSetExpiryDate}
+            onAutoMatchAll={handleAutoMatchAll}
+          />
+        </section>
 
-        {/* Section 3: Package Validation Gate & Generation Panel */}
-        <div className="bg-white border border-emerald-100/90 rounded-2xl p-6 shadow-xs mb-10">
+        {/* Section 4: Package Validation Gate & Generation Panel */}
+        <section id="section-generate" className="scroll-mt-20">
+          <div className="bg-white border border-emerald-100/90 rounded-2xl p-6 shadow-xs mb-10">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-emerald-50">
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 uppercase tracking-wider mb-1">
@@ -580,6 +722,7 @@ export default function App() {
             </div>
           )}
         </div>
+        </section>
       </main>
 
       {/* Footer */}

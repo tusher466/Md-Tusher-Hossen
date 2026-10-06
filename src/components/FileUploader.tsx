@@ -14,7 +14,8 @@ import {
   Lock,
   Sparkles,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  GripVertical
 } from 'lucide-react';
 
 interface FileUploaderProps {
@@ -302,29 +303,49 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
-                {files.map((file, idx) => (
-                  <tr
-                    key={file.id}
-                    className={`hover:bg-emerald-50/30 transition-colors ${
-                      file.isDuplicate ? 'bg-amber-50/30' : file.isCorrupt ? 'bg-rose-50/30' : ''
-                    }`}
-                  >
-                    <td className="py-3 px-4 text-center font-mono text-slate-400">
-                      {idx + 1}
-                    </td>
-
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <FileText className={`w-4 h-4 shrink-0 ${file.isCorrupt ? 'text-rose-500' : 'text-emerald-600'}`} />
-                        <div className="min-w-0">
-                          <span className="font-semibold text-slate-900 block truncate max-w-md">
-                            {file.name}
-                          </span>
-                          <span className="text-[10px] font-mono text-slate-400 block truncate">
-                            SHA: {file.hash.slice(0, 16)}...
-                          </span>
+                {files.map((file, idx) => {
+                  const canDrag = !file.isCorrupt && !file.isDuplicate;
+                  return (
+                    <tr
+                      key={file.id}
+                      draggable={canDrag}
+                      onDragStart={e => {
+                        if (!canDrag) return;
+                        e.dataTransfer.setData('text/plain', file.id);
+                        e.dataTransfer.setData('application/json', JSON.stringify({ id: file.id, name: file.name }));
+                        e.dataTransfer.effectAllowed = 'copyMove';
+                      }}
+                      className={`hover:bg-emerald-50/40 transition-colors ${
+                        canDrag ? 'cursor-grab active:cursor-grabbing' : ''
+                      } ${
+                        file.isDuplicate ? 'bg-amber-50/30' : file.isCorrupt ? 'bg-rose-50/30' : ''
+                      }`}
+                    >
+                      <td className="py-3 px-3 text-center font-mono text-slate-400">
+                        <div className="flex items-center justify-center gap-1">
+                          {canDrag ? (
+                            <span title="Drag to match with requirement" className="cursor-grab">
+                              <GripVertical className="w-3.5 h-3.5 text-slate-400 hover:text-emerald-700 shrink-0" />
+                            </span>
+                          ) : (
+                            <span className="w-3.5" />
+                          )}
+                          <span>{idx + 1}</span>
                         </div>
-                      </div>
+                      </td>
+
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <FileText className={`w-4 h-4 shrink-0 ${file.isCorrupt ? 'text-rose-500' : 'text-emerald-600'}`} />
+                          <div className="min-w-0">
+                            <span className="font-semibold text-slate-900 block truncate max-w-md">
+                              {file.name}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-400 block truncate">
+                              SHA: {file.hash.slice(0, 16)}...
+                            </span>
+                          </div>
+                        </div>
 
                       {/* Duplicate Flag */}
                       {file.isDuplicate && (
@@ -395,7 +416,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>
