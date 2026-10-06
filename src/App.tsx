@@ -71,6 +71,7 @@ export default function App() {
   const [showSealModal, setShowSealModal] = useState(false);
   const [showCustomJsonModal, setShowCustomJsonModal] = useState(false);
   const [showTenderEditModal, setShowTenderEditModal] = useState(false);
+  const [includeIndexPage, setIncludeIndexPage] = useState(true);
 
   // Generation status
   const [isGenerating, setIsGenerating] = useState(false);
@@ -291,6 +292,7 @@ export default function App() {
         filesMap,
         sealConfig,
         lang,
+        includeIndexPage,
         (msg, pct) => setGenerationProgress({ message: msg, percent: pct })
       );
 
@@ -383,7 +385,7 @@ export default function App() {
   const totalMandatoryCount = requirements.filter(r => r.mandatory).length;
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col text-slate-900 font-sans">
+    <div className="min-h-screen bg-[#f8fcf8] flex flex-col text-slate-900 font-sans selection:bg-emerald-600 selection:text-white">
       {/* Top Bar adhering to strict Top Bar Contract */}
       <Header
         currentLang={lang}
@@ -403,6 +405,11 @@ export default function App() {
           currentLang={lang}
           onEditTender={() => setShowTenderEditModal(true)}
           onLoadCustomJson={() => setShowCustomJsonModal(true)}
+          onDirectJsonUpload={newData => {
+            setRequirementsData(newData);
+            setMatches({});
+            setExpiryDates({});
+          }}
           onResetToDefault={handleResetToDefault}
         />
 
@@ -436,10 +443,10 @@ export default function App() {
         />
 
         {/* Section 3: Package Validation Gate & Generation Panel */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs mb-10">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-200">
+        <div className="bg-white border border-emerald-100/90 rounded-2xl p-6 shadow-xs mb-10">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-emerald-50">
             <div>
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+              <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 uppercase tracking-wider mb-1">
                 <span>Phase 3</span>
                 <span>·</span>
                 <span>{t.generateHeader}</span>
@@ -458,17 +465,17 @@ export default function App() {
                 onClick={() => setShowSealModal(true)}
                 className={`inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg border transition-colors shadow-2xs ${
                   sealConfig.enabled
-                    ? 'bg-blue-50 text-blue-800 border-blue-300'
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                    ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                    : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30'
                 }`}
               >
-                <Stamp className="w-3.5 h-3.5 text-blue-600" />
+                <Stamp className="w-3.5 h-3.5 text-emerald-600" />
                 <span>{sealConfig.enabled ? t.sealActive : t.sealConfigure}</span>
               </button>
 
               <button
                 onClick={handleExportChecklistCsv}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition-colors shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30 rounded-lg transition-colors shadow-2xs"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
                 <span>{t.exportChecklistCsv}</span>
@@ -500,7 +507,7 @@ export default function App() {
           <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4 text-xs text-slate-600">
               <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-slate-900 font-mono tabular-nums">
+                <span className="font-semibold text-emerald-900 font-mono tabular-nums">
                   {matchedDocsCount} / {requirements.length}
                 </span>
                 <span>documents included</span>
@@ -513,14 +520,24 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-2 text-xs font-medium text-slate-700 bg-emerald-50/50 border border-emerald-200/80 px-3 py-2 rounded-lg cursor-pointer hover:bg-emerald-50 transition-colors select-none">
+                <input
+                  type="checkbox"
+                  checked={includeIndexPage}
+                  onChange={e => setIncludeIndexPage(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                />
+                <span className="text-emerald-900">{lang === 'bn' ? 'সূচিপত্র পেজ অন্তর্ভুক্ত করুন (বোনাস)' : 'Include Index / Table of Contents (Bonus)'}</span>
+              </label>
+
               {generatedPdfBytes && (
                 <button
                   onClick={() => {
                     setPreviewFile(null);
                     setShowPreviewModal(true);
                   }}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors shadow-2xs"
                 >
                   <Eye className="w-4 h-4" />
                   <span>Preview Generated Package</span>
@@ -532,7 +549,7 @@ export default function App() {
                 disabled={!isPackageGenerationAllowed || isGenerating}
                 className={`inline-flex items-center justify-center gap-2 px-6 py-3 text-xs font-bold rounded-lg transition-all shadow-sm ${
                   isPackageGenerationAllowed && !isGenerating
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer hover:shadow'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer hover:shadow-md'
                     : 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300'
                 }`}
               >
@@ -554,9 +571,9 @@ export default function App() {
           {/* Generating Progress Bar */}
           {isGenerating && (
             <div className="mt-4">
-              <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                 <div
-                  className="bg-blue-600 h-2 transition-all duration-300 rounded-full"
+                  className="bg-emerald-600 h-2 transition-all duration-300 rounded-full"
                   style={{ width: `${generationProgress.percent}%` }}
                 />
               </div>
@@ -566,15 +583,18 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-900 border-t border-slate-800 py-6 text-xs text-slate-400 mt-auto">
+      <footer className="bg-white border-t border-emerald-100/90 py-6 text-xs text-slate-500 mt-auto shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div>
-            <span>Tender Document Package Builder · Strict In-Browser Processing (Chrome Tested)</span>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+            <span className="font-semibold text-slate-800">Tender Document Package Builder</span>
+            <span>·</span>
+            <span>Strict In-Browser Processing (Chrome Tested)</span>
           </div>
           <div className="flex items-center gap-3 text-slate-500">
             <span>Powered by pdf-lib & pdf.js</span>
             <span>·</span>
-            <span>Zero External API Calls</span>
+            <span className="text-emerald-700 font-semibold">Zero External Storage</span>
           </div>
         </div>
       </footer>

@@ -447,6 +447,7 @@ export async function generateTenderPackage(
   filesMap: Map<string, UploadedFileRecord>,
   sealConfig: SealConfig,
   lang: 'en' | 'bn',
+  includeIndexPage = true,
   onProgress?: (msg: string, pct: number) => void
 ): Promise<Uint8Array> {
   onProgress?.('Initializing PDF Compiler...', 10);
@@ -467,8 +468,9 @@ export async function generateTenderPackage(
   }
 
   // Calculate dynamic starting and ending pages for each document
-  // Cover Page is Page 1, Index Page is Page 2, first doc starts at Page 3.
-  let runningPageNumber = 3;
+  // Cover Page is Page 1. If includeIndexPage is true, Index is Page 2 and docs start on Page 3.
+  // Otherwise, docs start on Page 2 immediately after the cover page.
+  let runningPageNumber = includeIndexPage ? 3 : 2;
   const compiledEntries: CompiledDocEntry[] = [];
 
   for (const item of matchedDocs) {
@@ -485,7 +487,7 @@ export async function generateTenderPackage(
     runningPageNumber = end + 1;
   }
 
-  const totalFinalPages = runningPageNumber - 1; // Total pages including Cover (1) + Index (2) + all docs
+  const totalFinalPages = runningPageNumber - 1; // Total pages in final combined document
 
   onProgress?.('Generating Official Cover Page...', 25);
 
@@ -508,21 +510,22 @@ export async function generateTenderPackage(
     height: a4Height
   });
 
-  onProgress?.('Generating Index / Table of Contents...', 40);
+  // 3. Render Index Page if enabled
+  if (includeIndexPage) {
+    onProgress?.('Generating Index / Table of Contents...', 40);
+    const indexPngUrl = renderIndexPageCanvas(tender, compiledEntries, totalFinalPages, a4Width, a4Height, lang);
+    const indexPngBytes = await fetch(indexPngUrl).then(res => res.arrayBuffer());
+    const indexImage = await finalPdf.embedPng(indexPngBytes);
+    const indexPage = finalPdf.addPage([a4Width, a4Height]);
+    indexPage.drawImage(indexImage, {
+      x: 0,
+      y: 0,
+      width: a4Width,
+      height: a4Height
+    });
+  }
 
-  // 3. Render Index Page
-  const indexPngUrl = renderIndexPageCanvas(tender, compiledEntries, totalFinalPages, a4Width, a4Height, lang);
-  const indexPngBytes = await fetch(indexPngUrl).then(res => res.arrayBuffer());
-  const indexImage = await finalPdf.embedPng(indexPngBytes);
-  const indexPage = finalPdf.addPage([a4Width, a4Height]);
-  indexPage.drawImage(indexImage, {
-    x: 0,
-    y: 0,
-    width: a4Width,
-    height: a4Height
-  });
-
-  // 4. Append all matched documents
+  // 4. Append all matched documents in order
   let processedDocs = 0;
   for (const docEntry of compiledEntries) {
     processedDocs++;

@@ -8,6 +8,7 @@ interface TenderOverviewProps {
   currentLang: Language;
   onEditTender: () => void;
   onLoadCustomJson: () => void;
+  onDirectJsonUpload: (data: any) => void;
   onResetToDefault: () => void;
 }
 
@@ -16,9 +17,31 @@ export const TenderOverview: React.FC<TenderOverviewProps> = ({
   currentLang,
   onEditTender,
   onLoadCustomJson,
+  onDirectJsonUpload,
   onResetToDefault
 }) => {
   const t = translations[currentLang];
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result as string);
+        if (!parsed.tender || !Array.isArray(parsed.requirements)) {
+          alert('Invalid schema: File must contain a "tender" object and a "requirements" array.');
+          return;
+        }
+        onDirectJsonUpload(parsed);
+      } catch (err: any) {
+        alert(`Failed to parse JSON: ${err.message}`);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
 
   // Calculate days remaining to deadline
   const today = new Date();
@@ -30,13 +53,15 @@ export const TenderOverview: React.FC<TenderOverviewProps> = ({
   const isPast = diffDays < 0;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-5 md:p-6 mb-6">
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 pb-5 border-b border-slate-100">
+    <div className="bg-white border border-emerald-100/90 rounded-2xl shadow-xs p-5 md:p-6 mb-6">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 pb-5 border-b border-emerald-50">
         <div>
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-1">
-            <span>{t.tenderDetails}</span>
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-1.5">
+            <span className="text-emerald-800 font-medium">{t.tenderDetails}</span>
             <span>·</span>
-            <span className="font-mono text-slate-700 font-semibold">{tender.tender_id}</span>
+            <span className="font-mono text-emerald-900 font-bold bg-emerald-50/80 px-2 py-0.5 rounded border border-emerald-200/70">
+              {tender.tender_id}
+            </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-snug">
             {tender.title}
@@ -44,9 +69,26 @@ export const TenderOverview: React.FC<TenderOverviewProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".json,application/json"
+            className="hidden"
+          />
+
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors shadow-2xs"
+            title="Open requirements.json file"
+          >
+            <FileCode className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Open requirements.json</span>
+          </button>
+
           <button
             onClick={onEditTender}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-200 rounded-lg transition-colors"
           >
             <Edit3 className="w-3.5 h-3.5 text-slate-500" />
             <span>{t.editTender}</span>
@@ -54,16 +96,16 @@ export const TenderOverview: React.FC<TenderOverviewProps> = ({
 
           <button
             onClick={onLoadCustomJson}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-200 rounded-lg transition-colors"
+            title="Open JSON editor modal"
           >
-            <FileCode className="w-3.5 h-3.5 text-slate-500" />
-            <span>{t.loadCustomJson}</span>
+            <span>JSON Editor</span>
           </button>
 
           <button
             onClick={onResetToDefault}
             title={t.resetToDefault}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md transition-colors"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:text-emerald-800 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 rounded-lg transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
@@ -72,12 +114,12 @@ export const TenderOverview: React.FC<TenderOverviewProps> = ({
 
       {/* Tender Info Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-5">
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 shrink-0">
+        <div className="flex items-start gap-3 bg-emerald-50/30 border border-emerald-100/70 p-3 rounded-xl">
+          <div className="p-2 rounded-lg bg-white border border-emerald-100 text-emerald-700 shrink-0 shadow-2xs">
             <Building2 className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            <div className="text-[11px] font-semibold text-emerald-800/80 uppercase tracking-wider">
               {t.procuringEntity}
             </div>
             <div className="text-xs font-semibold text-slate-900 mt-0.5 line-clamp-2">
@@ -86,12 +128,12 @@ export const TenderOverview: React.FC<TenderOverviewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 shrink-0">
+        <div className="flex items-start gap-3 bg-emerald-50/30 border border-emerald-100/70 p-3 rounded-xl">
+          <div className="p-2 rounded-lg bg-white border border-emerald-100 text-emerald-700 shrink-0 shadow-2xs">
             <UserCheck className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            <div className="text-[11px] font-semibold text-emerald-800/80 uppercase tracking-wider">
               {t.bidderName}
             </div>
             <div className="text-xs font-semibold text-slate-900 mt-0.5 truncate">
@@ -100,12 +142,12 @@ export const TenderOverview: React.FC<TenderOverviewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 shrink-0">
+        <div className="flex items-start gap-3 bg-emerald-50/30 border border-emerald-100/70 p-3 rounded-xl">
+          <div className="p-2 rounded-lg bg-white border border-emerald-100 text-emerald-700 shrink-0 shadow-2xs">
             <Calendar className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            <div className="text-[11px] font-semibold text-emerald-800/80 uppercase tracking-wider">
               {t.submissionDeadline}
             </div>
             <div className="text-xs font-semibold text-slate-900 mt-0.5 font-mono tabular-nums">
@@ -117,25 +159,25 @@ export const TenderOverview: React.FC<TenderOverviewProps> = ({
               ) : diffDays === 0 ? (
                 <span className="text-amber-600 font-semibold">Expires Today</span>
               ) : (
-                <span className="text-emerald-600 font-medium">{diffDays} days remaining</span>
+                <span className="text-emerald-700 font-semibold">{diffDays} days remaining</span>
               )}
             </div>
           </div>
         </div>
 
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 shrink-0">
+        <div className="flex items-start gap-3 bg-emerald-50/30 border border-emerald-100/70 p-3 rounded-xl">
+          <div className="p-2 rounded-lg bg-white border border-emerald-100 text-emerald-600 shrink-0 shadow-2xs">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="min-w-0">
-            <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            <div className="text-[11px] font-semibold text-emerald-800/80 uppercase tracking-wider">
               Procurement Protocol
             </div>
             <div className="text-xs font-semibold text-slate-900 mt-0.5">
               National Competitive (PPR-2008)
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
-              Client-Side Certified
+            <div className="text-[11px] text-emerald-700 font-medium mt-0.5">
+              Client-Side Verified
             </div>
           </div>
         </div>

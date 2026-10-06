@@ -50,7 +50,9 @@ export const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
       return;
     }
 
-    const loadingTask = (pdfjsLib as any).getDocument({ data: dataToLoad });
+    // Clone buffer so worker transfer never detaches the original data in state
+    const clonedBuffer = new Uint8Array(dataToLoad.slice(0));
+    const loadingTask = (pdfjsLib as any).getDocument({ data: clonedBuffer });
     loadingTask.promise
       .then((doc: any) => {
         if (isMounted) {
@@ -126,13 +128,15 @@ export const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-4 sm:p-6">
-      <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 sm:p-6">
+      <div className="bg-white rounded-2xl shadow-2xl border border-emerald-100 w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
-        <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white">
-          <div className="flex items-center gap-2 min-w-0">
-            <FileText className="w-4 h-4 text-blue-400 shrink-0" />
-            <h3 className="text-sm font-semibold truncate text-white">
+        <div className="px-5 py-3.5 border-b border-emerald-100 flex items-center justify-between bg-white text-slate-900">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0">
+              <FileText className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-bold truncate text-slate-900">
               {title}
             </h3>
           </div>
@@ -141,14 +145,14 @@ export const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
             <button
               onClick={handleDownload}
               title="Download PDF"
-              className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition-colors"
+              className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
             >
               <Download className="w-4 h-4" />
             </button>
             <button
               onClick={onClose}
               title={t.close}
-              className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition-colors"
+              className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -156,22 +160,22 @@ export const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
         </div>
 
         {/* Toolbar */}
-        <div className="px-5 py-2.5 bg-slate-100 border-b border-slate-200 flex items-center justify-between text-xs text-slate-700">
+        <div className="px-5 py-2.5 bg-emerald-50/40 border-b border-emerald-100 flex items-center justify-between text-xs text-slate-700">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage <= 1}
-              className="p-1 rounded hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+              className="p-1 rounded-md hover:bg-emerald-100/70 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-emerald-900"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="font-mono font-medium">
+            <span className="font-mono font-semibold text-emerald-950">
               Page {currentPage} {t.pageOf} {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage >= totalPages}
-              className="p-1 rounded hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+              className="p-1 rounded-md hover:bg-emerald-100/70 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-emerald-900"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -181,17 +185,17 @@ export const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
             <button
               onClick={() => setScale(s => Math.max(0.6, s - 0.2))}
               title={t.zoomOut}
-              className="p-1 rounded hover:bg-slate-200 transition-colors"
+              className="p-1 rounded-md hover:bg-emerald-100/70 transition-colors text-emerald-900"
             >
               <ZoomOut className="w-4 h-4" />
             </button>
-            <span className="font-mono text-[11px] w-12 text-center">
+            <span className="font-mono text-[11px] font-semibold text-emerald-900 w-12 text-center">
               {Math.round(scale * 100)}%
             </span>
             <button
               onClick={() => setScale(s => Math.min(2.5, s + 0.2))}
               title={t.zoomIn}
-              className="p-1 rounded hover:bg-slate-200 transition-colors"
+              className="p-1 rounded-md hover:bg-emerald-100/70 transition-colors text-emerald-900"
             >
               <ZoomIn className="w-4 h-4" />
             </button>
@@ -199,10 +203,10 @@ export const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
         </div>
 
         {/* Preview Canvas Body */}
-        <div className="flex-1 overflow-auto bg-slate-200/80 p-6 flex items-center justify-center">
+        <div className="flex-1 overflow-auto bg-emerald-950/10 p-6 flex items-center justify-center">
           {loading && (
-            <div className="text-slate-600 font-medium text-xs flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            <div className="text-emerald-800 font-medium text-xs flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
               <span>Rendering PDF pages...</span>
             </div>
           )}
